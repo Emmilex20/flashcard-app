@@ -17,8 +17,6 @@ const CreateFlashcardPage = () => {
   const addFlashcardMutation = useMutation(api.flashcards.addFlashcard.addFlashcard);
   const { user } = useUser();
 
-  const userId = user?.id;
-
   const handleAddFlashcard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!term || !definition || !category || !user?.id) return;
@@ -27,7 +25,7 @@ const CreateFlashcardPage = () => {
       term,
       definition,
       category,
-      userId: user?.id,
+      userId: user.id, // Directly using user.id here
     });
 
     setTerm('');

@@ -9,7 +9,7 @@ import Navbar from '../components/Navbar';
 import { useUser } from '@clerk/clerk-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion'; // For animations
-import DarkModeToggle from '../components/DarkModeToggle'; // Import Dark Mode Toggle
+
 
 const HomePage = () => {
   const [flashcards, setFlashcards] = useState<any[]>([]);

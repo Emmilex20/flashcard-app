@@ -5,10 +5,11 @@ import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import FlashcardItem from '../../components/FlashcardItem';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs'; 
-import { useRouter } from 'next/navigation'; 
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 
+// Define the Flashcard type
 type Flashcard = {
   _id: string;
   term: string;
@@ -38,7 +39,8 @@ const FlashcardsPage = () => {
 
   const userId = user.id; 
 
-  const fetchedFlashcards = useQuery(api.flashcards.getFlashcards.getFlashcards, { userId });
+  // Fetch flashcards using useQuery and correctly type the response
+  const fetchedFlashcards = useQuery(api.flashcards.getFlashcards.getFlashcards, { userId }) as Flashcard[];
 
   useEffect(() => {
     if (fetchedFlashcards) {
@@ -46,11 +48,13 @@ const FlashcardsPage = () => {
     }
   }, [fetchedFlashcards]);
 
+  // Apply category filter
   const filteredFlashcards =
     categoryFilter === 'All'
       ? flashcards
       : flashcards.filter((fc) => fc.category === categoryFilter);
 
+  // Pagination logic
   const paginatedFlashcards = filteredFlashcards.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage

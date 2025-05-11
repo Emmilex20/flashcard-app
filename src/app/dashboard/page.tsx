@@ -9,10 +9,17 @@ import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';  // Clerk hook to get current user info
 import { useRouter } from 'next/navigation';  // Next.js router for redirection
 
+// Define the type for a flashcard
+interface Flashcard {
+  _id: string;
+  term: string;
+  definition: string;
+}
+
 const DashboardPage = () => {
-  const [flashcards, setFlashcards] = useState<any[]>([]);
-  const { user, isLoaded } = useUser(); // Clerk user hook
-  const router = useRouter(); // Router for redirecting
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);  // Use the correct Flashcard type
+  const { user, isLoaded } = useUser();  // Clerk user hook
+  const router = useRouter();  // Router for redirecting
 
   // If the user is not loaded or not logged in, redirect
   useEffect(() => {
@@ -22,14 +29,16 @@ const DashboardPage = () => {
   }, [isLoaded, user, router]);
 
   if (!isLoaded || !user) {
-    return null; // Show a loading spinner or nothing until user is loaded
+    return null;  // Show a loading spinner or nothing until user is loaded
   }
 
   // Now use the userId for fetching the flashcards
   const userId = user.id;
+  
+  // Fetch flashcards using useQuery and type it accordingly
   const fetchedFlashcards = useQuery(api.flashcards.getFlashcards.getFlashcards, {
     userId: userId,  // Pass userId as an argument to the query
-  });
+  }) as Flashcard[];  // Type the fetched flashcards response
 
   useEffect(() => {
     if (fetchedFlashcards) {

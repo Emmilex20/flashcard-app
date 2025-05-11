@@ -7,7 +7,7 @@ import { api } from '../../convex/_generated/api';
 interface FlashcardProps {
   term: string;
   definition: string;
-  _id: string;
+  _id: string; // Assuming _id is a string, but it needs to be cast to Id<"flashcards">
 }
 
 const FlashcardItem = ({ term, definition, _id }: FlashcardProps) => {
@@ -24,10 +24,14 @@ const FlashcardItem = ({ term, definition, _id }: FlashcardProps) => {
     setLoading(true);
     setError(null);
     try {
+      // Cast _id to Id<"flashcards"> if it is a string
       await updateFlashcard({ id: _id as any, term: newTerm, definition: newDefinition });
       setEditing(false);
-    } catch (err) {
+    } catch (err: unknown) {
       setError('Failed to update flashcard. Please try again.');
+      if (err instanceof Error) {
+        console.error('Update error:', err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -37,9 +41,13 @@ const FlashcardItem = ({ term, definition, _id }: FlashcardProps) => {
     setLoading(true);
     setError(null);
     try {
+      // Cast _id to Id<"flashcards"> if it is a string
       await deleteFlashcard({ id: _id as any });
-    } catch (err) {
+    } catch (err: unknown) {
       setError('Failed to delete flashcard. Please try again.');
+      if (err instanceof Error) {
+        console.error('Delete error:', err.message);
+      }
     } finally {
       setLoading(false);
     }
