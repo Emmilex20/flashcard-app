@@ -1,103 +1,141 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import FlashcardItem from '../components/FlashcardItem';
+import Link from 'next/link';
+import Navbar from '../components/Navbar';
+import { useUser } from '@clerk/clerk-react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion'; // For animations
+import DarkModeToggle from '../components/DarkModeToggle'; // Import Dark Mode Toggle
+
+const HomePage = () => {
+  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [term, setTerm] = useState('');
+  const [definition, setDefinition] = useState('');
+  const [category, setCategory] = useState('General');
+
+  const { user } = useUser(); 
+  const router = useRouter(); 
+
+  const userId = user?.id || ''; 
+
+  const addFlashcardMutation = useMutation(api.flashcards.addFlashcard.addFlashcard);
+  const fetchFlashcardsQuery = useQuery(api.flashcards.getFlashcards.getFlashcards, { userId });
+
+  useEffect(() => {
+    if (fetchFlashcardsQuery) {
+      setFlashcards(fetchFlashcardsQuery);
+    }
+
+    if (!user) {
+      router.push('/sign-up');
+    }
+  }, [fetchFlashcardsQuery, user, router]);
+
+  const handleAddFlashcard = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!term || !definition || !category || !userId) return;
+
+    await addFlashcardMutation({ term, definition, category, userId });
+
+    setTerm('');
+    setDefinition('');
+    setCategory('General');
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300 py-10 px-6">
+      <Navbar />
+      <section className="max-w-4xl mt-12 mx-auto">
+        <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white text-center mb-6">🎓 My Flashcards</h1>
+        <p className="text-gray-600 dark:text-gray-300 text-center text-lg mb-10">
+          Learn faster and retain more with your personalized flashcards.
+        </p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        {/* Add Flashcard Form */}
+        <form
+          onSubmit={handleAddFlashcard}
+          className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xl rounded-2xl p-6 md:p-8 mb-12 space-y-6 border border-indigo-100 dark:border-gray-700"
+        >
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Term</label>
+            <input
+              type="text"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-300 text-gray-700 dark:text-white"
+              placeholder="Enter term"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Definition</label>
+            <textarea
+              value={definition}
+              onChange={(e) => setDefinition(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-300 text-gray-700 dark:text-white"
+              rows={3}
+              placeholder="Enter definition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-300 text-gray-700 dark:text-white"
+            >
+              <option value="General">General</option>
+              <option value="Verbs">Verbs</option>
+              <option value="Nouns">Nouns</option>
+              <option value="Phrases">Phrases</option>
+            </select>
+          </div>
+
+          <motion.button
+            type="submit"
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all shadow-md"
           >
-            Read our docs
-          </a>
+            ➕ Add Flashcard
+          </motion.button>
+        </form>
+
+        {/* Flashcards Display */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {flashcards.map((flashcard, index) => (
+            <motion.div
+              key={flashcard._id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <FlashcardItem
+                _id={flashcard._id}
+                term={flashcard.term}
+                definition={flashcard.definition}
+              />
+            </motion.div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Navigation button to go to Dashboard */}
+        <div className="mt-6 text-center">
+          <Link href="/dashboard" passHref>
+            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+              Go to Dashboard
+            </button>
+          </Link>
+        </div>
+      </section>
+    </main>
   );
-}
+};
+
+export default HomePage;
